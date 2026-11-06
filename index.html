@@ -1,0 +1,2239 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Fitocontrol - Fitocosmética y Perfumes 100%</title>
+
+  <!-- Firebase SDKs Oficiales v9 compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    /* ========================================================
+       1. CONTROL TÁCTIL Y RESETEO ANTIBLOQUEO ESTRICTO
+       ======================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.4;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    button, input, select, textarea, a, .clickable {
+      pointer-events: auto !important;
+      cursor: pointer !important;
+      touch-action: manipulation !important;
+      user-select: auto;
+    }
+
+    /* Regla crítica para evitar pantallas o backdrops invisibles congelados */
+    .modal-hidden {
+      display: none !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+      z-index: -9999 !important;
+      opacity: 0 !important;
+    }
+
+    .modal-active {
+      display: flex !important;
+      pointer-events: auto !important;
+      visibility: visible !important;
+      z-index: 99999 !important;
+      opacity: 1 !important;
+    }
+
+    /* ========================================================
+       2. ESTRUCTURA Y ENCABEZADO BOTÁNICO VERDE ESMERALDA
+       ======================================================== */
+    .app-wrapper {
+      max-width: 440px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: #f8fafc;
+    }
+
+    .header-bar {
+      background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%);
+      color: #ffffff;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 4px 12px rgba(6, 78, 59, 0.2);
+    }
+
+    .secret-trigger {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .secret-trigger:active {
+      opacity: 0.85;
+      transform: scale(0.98);
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .brand-text h1 {
+      font-size: 13.5px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+
+    .brand-sub {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .badge-route {
+      background: rgba(6, 78, 59, 0.85);
+      color: #a7f3d0;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    .badge-cloud {
+      font-size: 9.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      font-weight: 700;
+    }
+
+    .cloud-online { color: #86efac; }
+    .cloud-local { color: #fde047; }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-green { background-color: #4ade80; box-shadow: 0 0 6px #4ade80; }
+    .dot-yellow { background-color: #facc15; }
+
+    .bcv-card {
+      background: rgba(6, 78, 59, 0.9);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      padding: 5px 9px;
+      border-radius: 8px;
+      text-align: right;
+    }
+
+    .bcv-title {
+      font-size: 9px;
+      font-weight: 800;
+      color: #a7f3d0;
+      text-transform: uppercase;
+      display: block;
+    }
+
+    .bcv-rate {
+      font-size: 12.5px;
+      font-weight: 900;
+      color: #fde047;
+    }
+
+    /* ========================================================
+       3. CONTENIDO PRINCIPAL Y PESTAÑAS
+       ======================================================== */
+    .content-area {
+      flex: 1;
+      padding: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .banner-promo {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+
+    .banner-tag {
+      background: #d1fae5;
+      color: #065f46;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+
+    .banner-desc {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #064e3b;
+    }
+
+    .btn-wa-summary {
+      width: 100%;
+      background-color: #10b981;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      box-shadow: 0 3px 8px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-wa-summary:active {
+      background-color: #059669;
+      transform: scale(0.98);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .metric-card {
+      background: #ffffff;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .m-title {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .m-val {
+      font-size: 15.5px;
+      font-weight: 900;
+      display: block;
+    }
+
+    .c-slate { color: #64748b; }
+    .c-green { color: #059669; }
+    .c-teal { color: #0f766e; }
+    .c-amber { color: #d97706; }
+    .c-red { color: #dc2626; }
+
+    .rendicion-box {
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .btn-rendir-open {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .btn-rendir-open:active {
+      background: #e2e8f0;
+    }
+
+    .tabs-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .tab-item {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      padding: 9px 4px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+    }
+
+    .tab-item.active {
+      border: 2px solid #059669;
+      color: #059669;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+    }
+
+    .badge-pill {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #d97706;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 1px 5px;
+      border-radius: 20px;
+    }
+
+    .panel-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .panel-header {
+      font-size: 11.5px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #1e293b;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    .form-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #475569;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      background: #ffffff;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: #059669;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-action-primary {
+      width: 100%;
+      background: #059669;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-top: 4px;
+    }
+
+    .btn-action-primary:active {
+      background: #047857;
+      transform: scale(0.98);
+    }
+
+    .badge-pay {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .pay-usd { background: #dcfce7; color: #166534; }
+    .pay-bs { background: #ccfbf1; color: #115e59; }
+    .pay-pm { background: #dbeafe; color: #1e40af; }
+    .pay-bank { background: #e0e7ff; color: #3730a3; }
+    .pay-binance { background: #fef3c7; color: #b45309; }
+
+    .history-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    /* ========================================================
+       4. MODALES
+       ======================================================== */
+    .custom-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 999999;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      width: 100%;
+      max-width: 440px;
+      max-height: 90vh;
+      border-radius: 16px;
+      overflow-y: auto;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #059669;
+      border-radius: 50%;
+    }
+
+    .dot.filled {
+      background: #059669;
+    }
+
+    .pad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .pad-btn {
+      background: #f1f5f9;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .pad-btn:active {
+      background: #e2e8f0;
+      transform: scale(0.95);
+    }
+
+    .master-nav {
+      display: flex;
+      overflow-x: auto;
+      gap: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .master-tab-btn {
+      white-space: nowrap;
+      background: #f1f5f9;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #475569;
+    }
+
+    .master-tab-btn.active {
+      background: #059669;
+      color: #ffffff;
+    }
+
+    #appToast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 700;
+      z-index: 1000000;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-wrapper">
+
+    <!-- ENCABEZADO BOTÁNICO Y DETECTOR SECRETO (5 TOQUES) -->
+    <header class="header-bar">
+      <div id="triggerSecretHeader" class="secret-trigger" title="Toque 5 veces">
+        <div class="brand-icon">🌿</div>
+        <div class="brand-text">
+          <h1>Fitocosmética y Perfumes 100%</h1>
+          <div class="brand-sub">
+            <span id="labelRutaHeader" class="badge-route">Ruta: Misael Fuenmayor</span>
+            <span id="badgeCloudStatus" class="badge-cloud cloud-online">
+              <span id="dotCloudStatus" class="live-dot dot-green"></span>
+              <span id="txtCloudStatus">En vivo</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bcv-card">
+        <span class="bcv-title">Tasa BCV</span>
+        <span id="displayTasaBCV" class="bcv-rate">Bs. 893,22</span>
+      </div>
+    </header>
+
+    <!-- ÁREA OPERATIVA -->
+    <main class="content-area">
+
+      <div class="banner-promo">
+        <span class="banner-tag">📢 Aviso y Promociones</span>
+        <p id="labelTextoAviso" class="banner-desc">
+          ¡Por cada 10 unidades cobradas o vendidas al contado, gana 1 mini spray de 3ml de comisión especial!
+        </p>
+      </div>
+
+      <button id="btnCompartirWhatsApp" class="btn-wa-summary">
+        <span>📲</span> Enviar Resumen de Cobranzas por WhatsApp
+      </button>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span class="m-title c-slate">Cartera en Calle</span>
+          <span id="mCartera" class="m-val c-slate">$0.00</span>
+        </div>
+        <div class="metric-card">
+          <span class="m-title c-green">Cobrado Total ($)</span>
+          <span id="mCobradoUSD" class="m-val c-green">$0.00</span>
+        </div>
+        <div class="metric-card">
+          <span class="m-title c-teal">Cobrado Total (Bs)</span>
+          <span id="mCobradoBS" class="m-val c-teal" style="font-size: 13px;">Bs. 0,00</span>
+        </div>
+        <div class="metric-card">
+          <span class="m-title c-amber">Comisiones Ganadas</span>
+          <span id="mComisiones" class="m-val c-amber">$0.00</span>
+        </div>
+      </div>
+
+      <div class="rendicion-box">
+        <div>
+          <span class="m-title c-slate">Dinero Entregado al Dueño</span>
+          <span id="mRendido" class="m-val c-slate">$0.00</span>
+        </div>
+        <button id="btnAbrirModalRendir" class="btn-rendir-open">Rendir $</button>
+      </div>
+
+      <div class="tabs-nav">
+        <button id="tabCobrar" class="tab-item active">
+          <span>💵</span>
+          <span>Cobrar</span>
+        </button>
+        <button id="tabMercancia" class="tab-item">
+          <span>📦</span>
+          <span>Mi Stock</span>
+          <span id="badgeStockUnidades" class="badge-pill" style="display: none;">0</span>
+        </button>
+        <button id="tabNuevoCliente" class="tab-item">
+          <span>👤+</span>
+          <span>+ Cliente</span>
+        </button>
+        <button id="tabCuentas" class="tab-item">
+          <span>🏦</span>
+          <span>Cuentas</span>
+        </button>
+      </div>
+
+      <!-- VISTA 1: COBRAR -->
+      <section id="vistaCobrar" class="panel-box">
+        <div class="panel-header">
+          <span>Registrar Pago de Cliente</span>
+          <span id="badgeModoOperativo" style="font-size: 9px; background: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px;">Ruta Misael Fuenmayor</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha y Hora</label>
+          <input type="text" id="campoFechaCobro" readonly class="form-control" style="background:#f8fafc; color:#64748b;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cliente a Cobrar</label>
+          <select id="selectClienteACobrar" class="form-control">
+            <option value="">-- No hay clientes en esta ruta --</option>
+          </select>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Monto Cobrado ($)</label>
+            <input type="number" step="0.01" id="inputMontoUSD" placeholder="0.00" class="form-control" style="font-weight: 800;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Equivalente BCV (Bs)</label>
+            <div id="boxCobroBS" class="form-control" style="background:#f8fafc; font-weight:800; color:#0f766e; overflow:hidden; text-overflow:ellipsis;">Bs. 0,00</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Método de Pago Recibido</label>
+          <select id="selectMetodoCobro" class="form-control">
+            <option value="Dólares Efectivo ($)">💵 Dólares en Efectivo ($)</option>
+            <option value="Bolívares Efectivo (Bs)">💵 Bolívares en Efectivo (Bs)</option>
+            <option value="Pago Móvil">📲 Pago Móvil</option>
+            <option value="Transferencia Bancaria">🏦 Transferencia Bancaria</option>
+            <option value="Binance USDT">🟡 Binance Pay / USDT</option>
+          </select>
+        </div>
+
+        <button id="btnGuardarCobro" class="btn-action-primary">
+          Guardar Cobro y Sincronizar
+        </button>
+      </section>
+
+      <!-- VISTA 2: MI STOCK -->
+      <section id="vistaMercancia" class="panel-box" style="display: none;">
+        <div class="panel-header">
+          <span>Mi Mercancía Asignada</span>
+        </div>
+        <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">
+          Mercancía bajo tu responsabilidad. Cada venta descuenta de tu inventario en vivo y liquida tu comisión acordada.
+        </p>
+
+        <div id="contenedorProductosCobrador"></div>
+
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 10px; margin-top: 10px;">
+          <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0f172a; display: block; margin-bottom: 8px;">
+            Registrar Venta Directa de Producto
+          </span>
+
+          <div class="form-group">
+            <label class="form-label">Producto a Vender</label>
+            <select id="selectVentaProducto" class="form-control">
+              <option value="">-- Selecciona producto --</option>
+            </select>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Cantidad</label>
+              <input type="number" min="1" id="inputVentaCantidad" value="1" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Monto Total ($)</label>
+              <input type="number" step="0.01" id="inputVentaMonto" placeholder="0.00" class="form-control" style="font-weight: 800; color:#059669;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cliente / Receptor</label>
+            <input type="text" id="inputVentaCliente" placeholder="Ej. Juan Pérez o Al Contado" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Método de Pago</label>
+            <select id="selectMetodoVentaDirecta" class="form-control">
+              <option value="Dólares Efectivo ($)">💵 Dólares en Efectivo ($)</option>
+              <option value="Bolívares Efectivo (Bs)">💵 Bolívares en Efectivo (Bs)</option>
+              <option value="Pago Móvil">📲 Pago Móvil</option>
+              <option value="Transferencia Bancaria">🏦 Transferencia Bancaria</option>
+              <option value="Binance USDT">🟡 Binance Pay / USDT</option>
+            </select>
+          </div>
+
+          <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 8px; border-radius: 8px; font-size: 11px; font-weight: 800; color: #92400e; display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>Tu comisión por esta venta:</span>
+            <span id="labelGananciaVentaDirecta">$0.00</span>
+          </div>
+
+          <button id="btnRegistrarVentaDirecta" class="btn-action-primary" style="background: #d97706;">
+            Confirmar Venta y Descontar Stock
+          </button>
+        </div>
+      </section>
+
+      <!-- VISTA 3: + CLIENTE EN CALLE (LIBRE SIN PIN) -->
+      <section id="vistaNuevoCliente" class="panel-box" style="display: none;">
+        <div class="panel-header">
+          <span>Registrar Nuevo Cliente</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nombre del Cliente o Negocio *</label>
+          <input type="text" id="inputNuevoCliNombre" placeholder="Ej. Perfumería El Rosal" class="form-control">
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Teléfono</label>
+            <input type="text" id="inputNuevoCliTel" placeholder="0412-0000000" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dirección / Sector</label>
+            <input type="text" id="inputNuevoCliDir" placeholder="Ej. Av. Bolívar local 3" class="form-control">
+          </div>
+        </div>
+
+        <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; color: #92400e; cursor: pointer;">
+            <input type="checkbox" id="checkDespacharMercanciaCliente" style="width: 16px; height: 16px;">
+            ¿Entregar mercancía de tu stock a crédito/consignación?
+          </label>
+
+          <div id="boxCamposDespachoCliente" style="display: none; margin-top: 8px;">
+            <div class="form-group">
+              <label class="form-label">Producto de tu Stock</label>
+              <select id="selectProductoParaNuevoCliente" class="form-control">
+                <option value="">-- Selecciona producto --</option>
+              </select>
+            </div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Cantidad Entregada</label>
+                <input type="number" id="inputCantProdNuevoCli" min="1" value="1" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Deuda Total ($)</label>
+                <input type="number" step="0.01" id="inputDeudaProdNuevoCli" placeholder="0.00" class="form-control" style="font-weight: 800; color:#059669;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="boxDeudaManualNuevoCli" class="form-group">
+          <label class="form-label">Deuda Inicial a Cobrar ($)</label>
+          <input type="number" step="0.01" id="inputDeudaManualNuevoCli" placeholder="0.00" class="form-control" style="font-weight: 800; color:#059669;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Descripción de Mercancía Entregada</label>
+          <input type="text" id="inputDescNuevoCli" placeholder="Ej. 2 Perfumes 100ml dama entregados" class="form-control">
+        </div>
+
+        <button id="btnGuardarNuevoCliente" class="btn-action-primary">
+          Guardar Cliente en Mi Cartera
+        </button>
+      </section>
+
+      <!-- VISTA 4: CUENTAS -->
+      <section id="vistaCuentas" class="panel-box" style="display: none;">
+        <div class="panel-header">
+          <span>Datos Bancarios y Binance</span>
+        </div>
+        <div id="contenedorDatosBancarios" style="font-size: 12px; line-height: 1.7; color: #334155;"></div>
+      </section>
+
+      <!-- COBROS DE HOY -->
+      <section class="panel-box">
+        <div class="panel-header">
+          <span>Mis Cobros de Hoy</span>
+          <span id="contadorCobrosHoy" style="font-size: 10px; font-weight: 800; color: #059669;">0 cobros</span>
+        </div>
+        <div id="listaCobrosHoyContainer"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: RENDIR DINERO (LIBRE) -->
+  <div id="modalRendir" class="custom-modal-overlay modal-hidden">
+    <div class="modal-box">
+      <div class="panel-header">
+        <span>Rendir Dinero al Dueño</span>
+        <button id="btnCerrarModalRendir" style="border: none; background: none; font-size: 20px; font-weight: 800; cursor: pointer;">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Vía o Medio Entregado</label>
+        <select id="selectRendirMetodo" class="form-control">
+          <option value="Dólares Efectivo ($)">💵 Dólares en Efectivo ($)</option>
+          <option value="Bolívares Efectivo (Bs)">💵 Bolívares en Efectivo (Bs)</option>
+          <option value="Pago Móvil">📲 Pago Móvil a la cuenta del dueño</option>
+          <option value="Transferencia Bancaria">🏦 Transferencia Bancaria</option>
+          <option value="Binance USDT">🟡 Binance Pay / USDT</option>
+        </select>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Monto en Dólares ($)</label>
+          <input type="number" step="0.01" id="inputRendirMontoUSD" placeholder="0.00" class="form-control" style="font-weight: 800;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Monto en Bolívares (Bs)</label>
+          <input type="number" step="0.01" id="inputRendirMontoBS" placeholder="0.00" class="form-control" style="font-weight: 800;">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nota / Referencia</label>
+        <input type="text" id="inputRendirNota" placeholder="Ej. Sobre en mano o Ref 4821" class="form-control">
+      </div>
+
+      <button id="btnConfirmarRendirModal" class="btn-action-primary">
+        Registrar Entrega de Dinero
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: TECLADO PIN SECRETO (5 TOQUES) -->
+  <div id="modalPIN" class="custom-modal-overlay modal-hidden">
+    <div class="modal-box" style="max-width: 320px; text-align: center;">
+      <div style="font-size: 28px; margin-bottom: 6px;">🛡️</div>
+      <h3 style="font-size: 14px; font-weight: 800; color: #0f172a;">Acceso Confidencial</h3>
+      <p style="font-size: 11px; color: #64748b; margin-top: 2px;">Introduce tu PIN de 4 dígitos</p>
+
+      <div class="pin-dots">
+        <div id="dot0" class="dot"></div>
+        <div id="dot1" class="dot"></div>
+        <div id="dot2" class="dot"></div>
+        <div id="dot3" class="dot"></div>
+      </div>
+
+      <div class="pad-grid">
+        <button class="pad-btn btn-num" data-k="1">1</button>
+        <button class="pad-btn btn-num" data-k="2">2</button>
+        <button class="pad-btn btn-num" data-k="3">3</button>
+        <button class="pad-btn btn-num" data-k="4">4</button>
+        <button class="pad-btn btn-num" data-k="5">5</button>
+        <button class="pad-btn btn-num" data-k="6">6</button>
+        <button class="pad-btn btn-num" data-k="7">7</button>
+        <button class="pad-btn btn-num" data-k="8">8</button>
+        <button class="pad-btn btn-num" data-k="9">9</button>
+        <button id="btnSalirPIN" class="pad-btn" style="font-size: 12px; font-weight: 800; color: #dc2626;">Salir</button>
+        <button class="pad-btn btn-num" data-k="0">0</button>
+        <button id="btnBorrarPIN" class="pad-btn" style="font-size: 16px; color: #d97706;">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PANEL MAESTRO -->
+  <div id="modalMaster" class="custom-modal-overlay modal-hidden">
+    <div class="modal-box" style="max-width: 460px;">
+      <div class="panel-header">
+        <span>👑 Panel Maestro de Control</span>
+        <button id="btnCerrarMaster" style="border: none; background: none; font-size: 20px; font-weight: 800; cursor: pointer;">&times;</button>
+      </div>
+
+      <div class="master-nav">
+        <button class="master-tab-btn active" data-v="mSubMonitoreo">Monitoreo</button>
+        <button class="master-tab-btn" data-v="mSubInventario">Inventario</button>
+        <button class="master-tab-btn" data-v="mSubDespacho">Despacho</button>
+        <button class="master-tab-btn" data-v="mSubCobradores">Cobradores</button>
+        <button class="master-tab-btn" data-v="mSubClientes">Clientes</button>
+        <button class="master-tab-btn" data-v="mSubRendiciones">Rendiciones</button>
+        <button class="master-tab-btn" data-v="mSubAjustes">Ajustes</button>
+      </div>
+
+      <!-- SUB 1: MONITOREO -->
+      <div id="mSubMonitoreo" class="m-view">
+        <div class="form-group">
+          <label class="form-label">Filtrar por Cobrador</label>
+          <select id="selectFiltroMasterCobrador" class="form-control"></select>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="m-title c-green">Cobrado ($)</span>
+            <span id="auditUSD" class="m-val c-green">$0.00</span>
+          </div>
+          <div class="metric-card">
+            <span class="m-title c-teal">Cobrado (Bs)</span>
+            <span id="auditBS" class="m-val c-teal" style="font-size: 12px;">Bs. 0,00</span>
+          </div>
+          <div class="metric-card">
+            <span class="m-title c-amber">Comisiones Totales</span>
+            <span id="auditComision" class="m-val c-amber">$0.00</span>
+          </div>
+          <div class="metric-card">
+            <span class="m-title c-slate">Rendido al Dueño</span>
+            <span id="auditRendido" class="m-val c-slate">$0.00</span>
+          </div>
+        </div>
+
+        <div class="metric-card" style="margin-bottom: 10px; text-align: center;">
+          <span class="m-title c-red">Cartera en Calle</span>
+          <span id="auditCartera" class="m-val c-red">$0.00</span>
+        </div>
+
+        <span class="form-label">Cobros Recientes Registrados</span>
+        <div id="contenedorAuditoriaCobros" style="max-height: 180px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- SUB 2: INVENTARIO UNIVERSAL -->
+      <div id="mSubInventario" class="m-view" style="display: none;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+          <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0f172a; display: block; margin-bottom: 6px;">
+            Registrar Producto en Almacén Central
+          </span>
+          <div class="form-group">
+            <input type="text" id="inputInvNombre" placeholder="Nombre (Perfumes, Quesillo, Pan, Ropa...)" class="form-control">
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <input type="number" id="inputInvStock" placeholder="Stock Inicial" class="form-control">
+            </div>
+            <div class="form-group">
+              <input type="number" step="0.01" id="inputInvPrecio" placeholder="Precio Ref ($)" class="form-control" style="color: #059669; font-weight: 800;">
+            </div>
+          </div>
+          <button id="btnGuardarProdInventario" class="btn-action-primary">
+            + Guardar en Almacén Central
+          </button>
+        </div>
+
+        <span class="form-label">Stock en Almacén Central</span>
+        <div id="contenedorListaInventarioCentral" style="max-height: 180px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- SUB 3: DESPACHO CON COMISIÓN PERSONALIZADA -->
+      <div id="mSubDespacho" class="m-view" style="display: none;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+          <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0f172a; display: block; margin-bottom: 6px;">
+            Asignar Mercancía a Cobrador / Vendedor
+          </span>
+          
+          <div class="form-group">
+            <label class="form-label">Producto en Almacén</label>
+            <select id="selectDespachoProducto" class="form-control"></select>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Cantidad a Asignar</label>
+              <input type="number" id="inputDespachoCantidad" placeholder="Ej. 20" min="1" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">% Ganancia por Venta</label>
+              <input type="number" id="inputDespachoMargen" placeholder="Ej. 25" min="0" max="100" class="form-control" style="color: #d97706; font-weight: 800;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cobrador Receptor</label>
+            <select id="selectDespachoCobrador" class="form-control"></select>
+          </div>
+
+          <button id="btnEjecutarDespachoDueno" class="btn-action-primary">
+            Asignar y Descontar de Almacén
+          </button>
+        </div>
+
+        <span class="form-label">Mercancía Despachada en Calle</span>
+        <div id="contenedorListaDespachosActivos" style="max-height: 180px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- SUB 4: COBRADORES -->
+      <div id="mSubCobradores" class="m-view" style="display: none;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+          <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0f172a; display: block; margin-bottom: 6px;">
+            Crear Cobrador / Vendedor
+          </span>
+          <div class="form-group">
+            <input type="text" id="inputCobradorNombre" placeholder="Nombre completo (Ej. David Fuenmayor)" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">% Ganancia Base por Cobranza</label>
+            <input type="number" id="inputCobradorComision" placeholder="Ej. 20" class="form-control">
+          </div>
+          <button id="btnGuardarCobrador" class="btn-action-primary">
+            Guardar Cobrador
+          </button>
+        </div>
+
+        <span class="form-label">Cobradores y Enlaces Privados</span>
+        <div id="contenedorListaCobradoresMaster" style="max-height: 200px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- SUB 5: CLIENTES -->
+      <div id="mSubClientes" class="m-view" style="display: none;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+          <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0f172a; display: block; margin-bottom: 6px;">
+            Asignar Cliente a Ruta
+          </span>
+          <div class="form-group">
+            <input type="text" id="inputCliNombreMaster" placeholder="Nombre de Cliente o Negocio" class="form-control">
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <input type="text" id="inputCliTelMaster" placeholder="Teléfono" class="form-control">
+            </div>
+            <div class="form-group">
+              <input type="text" id="inputCliDirMaster" placeholder="Dirección" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <input type="text" id="inputCliDescMaster" placeholder="Mercancía entregada (Ej. 2 perfumes)" class="form-control">
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <input type="number" step="0.01" id="inputCliDeudaMaster" placeholder="Deuda ($)" class="form-control" style="font-weight: 800; color: #059669;">
+            </div>
+            <div class="form-group">
+              <select id="selectCliCobradorMaster" class="form-control"></select>
+            </div>
+          </div>
+          <button id="btnGuardarClienteMaster" class="btn-action-primary">
+            Asignar Cliente
+          </button>
+        </div>
+
+        <span class="form-label">Cartera de Clientes</span>
+        <div id="contenedorListaClientesMaster" style="max-height: 200px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- SUB 6: RENDICIONES -->
+      <div id="mSubRendiciones" class="m-view" style="display: none;">
+        <span class="form-label">Historial de Entregas al Dueño</span>
+        <div id="contenedorListaRendicionesMaster" style="max-height: 240px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- SUB 7: AJUSTES -->
+      <div id="mSubAjustes" class="m-view" style="display: none;">
+        <div class="form-group">
+          <label class="form-label">Texto de Aviso / Promoción</label>
+          <input type="text" id="inputAjusteAviso" class="form-control">
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Tasa Oficial BCV (Bs)</label>
+            <input type="number" step="0.01" id="inputAjusteTasa" class="form-control" style="font-weight: 800; color: #0f766e;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">PIN Dueño (4 Dígitos)</label>
+            <input type="password" maxlength="4" id="inputAjustePin" class="form-control" style="font-weight: 800;">
+          </div>
+        </div>
+
+        <!-- Cuentas bancarias y Binance -->
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:10px; border-radius:10px; margin-top:10px; margin-bottom:10px;">
+          <span style="font-size:11px; font-weight:800; text-transform:uppercase; color:#0f766e; display:block; margin-bottom:8px;">
+            💳 Cuentas Oficiales de Cobro
+          </span>
+          <div class="form-group">
+            <label class="form-label">Titular de las Cuentas</label>
+            <input type="text" id="inputAjusteTitular" class="form-control">
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Cédula</label>
+              <input type="text" id="inputAjusteCedula" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono Pago Móvil</label>
+              <input type="text" id="inputAjusteTelPM" class="form-control">
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Banco</label>
+              <input type="text" id="inputAjusteBanco" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo de Cuenta</label>
+              <input type="text" id="inputAjusteTipoCuenta" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Número de Cuenta Bancaria (20 dígitos)</label>
+            <input type="text" id="inputAjusteNumCuenta" class="form-control">
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Binance Pay ID</label>
+              <input type="text" id="inputAjusteBinanceId" class="form-control" style="color:#b45309; font-weight:700;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Correo / Usuario Binance</label>
+              <input type="text" id="inputAjusteBinanceUser" class="form-control" style="color:#b45309; font-weight:700;">
+            </div>
+          </div>
+        </div>
+
+        <button id="btnGuardarAjustes" class="btn-action-primary">
+          Guardar Toda la Configuración
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="appToast">Mensaje</div>
+
+  <!-- ========================================================
+       FIREBASE INTEGRADO AUTOMÁTICAMENTE Y PERSISTENCIA
+       ======================================================== -->
+  <script>
+    // Configuración directa y pre-establecida de Firebase Realtime Database
+    const FIREBASE_AUTO_CONFIG = {
+      databaseURL: "https://fitocontrol-default-rtdb.firebaseio.com",
+      projectId: "fitocontrol"
+    };
+
+    const DB_LOCAL_KEY = 'fitocontrol_unified_v3';
+
+    const estadoInicial = {
+      config: {
+        tasaBcv: 893.22,
+        pin: '1234',
+        aviso: '¡Por cada 10 unidades cobradas o vendidas al contado, gana 1 mini spray de 3ml de comisión especial!',
+        cuentas: {
+          titular: 'Misael David Fuenmayor Aguirre',
+          cedula: 'V-16.246.468',
+          telefono: '0412-3184756',
+          banco: 'Banesco (0134)',
+          tipoCuenta: 'Cuenta de Ahorro / Corriente',
+          numeroCuenta: '0134-0131-40-1312237032',
+          binanceId: '381920412',
+          binanceUser: 'misaelfuenmayor@gmail.com'
+        }
+      },
+      cobradores: [
+        { id: 'misael', nombre: 'Misael Fuenmayor', comisionCobranza: 20 }
+      ],
+      clientes: [],
+      cobros: [],
+      rendiciones: [],
+      inventarioCentral: [],
+      despachos: []
+    };
+
+    let data = estadoInicial;
+    let dbFirebase = null;
+    let firebaseConectado = false;
+
+    // 1. Cargar almacenamiento local inmediato
+    try {
+      const guardado = localStorage.getItem(DB_LOCAL_KEY);
+      if (guardado) {
+        data = { ...estadoInicial, ...JSON.parse(guardado) };
+      }
+    } catch (e) {
+      console.warn("Iniciando estado por defecto", e);
+    }
+
+    if (!data.cobradores || data.cobradores.length === 0) {
+      data.cobradores = [{ id: 'misael', nombre: 'Misael Fuenmayor', comisionCobranza: 20 }];
+    }
+
+    // 2. Determinar cobrador activo según enlace (?cobrador=id)
+    const params = new URLSearchParams(window.location.search);
+    const paramCobrador = params.get('cobrador');
+    let cobradorActivo = null;
+
+    function resolverCobradorActivo() {
+      if (paramCobrador) {
+        cobradorActivo = data.cobradores.find(c => c.id.toLowerCase() === paramCobrador.toLowerCase()) || null;
+      }
+      if (!cobradorActivo) {
+        cobradorActivo = data.cobradores.find(c => c.id === 'misael') || data.cobradores[0];
+      }
+    }
+    resolverCobradorActivo();
+
+    // 3. Conexión automática de Firebase
+    function conectarFirebaseAutomatico() {
+      try {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(FIREBASE_AUTO_CONFIG);
+        }
+        dbFirebase = firebase.database();
+
+        // Monitor de estado de conexión
+        dbFirebase.ref('.info/connected').on('value', snap => {
+          if (snap.val() === true) {
+            firebaseConectado = true;
+            actualizarEstadoConexion(true);
+          } else {
+            firebaseConectado = false;
+            actualizarEstadoConexion(false);
+          }
+        });
+
+        // Sincronización continua bidireccional
+        dbFirebase.ref('fitocontrol_data').on('value', snapshot => {
+          const val = snapshot.val();
+          if (val) {
+            data = {
+              config: val.config || data.config,
+              cobradores: Array.isArray(val.cobradores) ? val.cobradores : (val.cobradores ? Object.values(val.cobradores) : data.cobradores),
+              clientes: Array.isArray(val.clientes) ? val.clientes : (val.clientes ? Object.values(val.clientes) : []),
+              cobros: Array.isArray(val.cobros) ? val.cobros : (val.cobros ? Object.values(val.cobros) : []),
+              rendiciones: Array.isArray(val.rendiciones) ? val.rendiciones : (val.rendiciones ? Object.values(val.rendiciones) : []),
+              inventarioCentral: Array.isArray(val.inventarioCentral) ? val.inventarioCentral : (val.inventarioCentral ? Object.values(val.inventarioCentral) : []),
+              despachos: Array.isArray(val.despachos) ? val.despachos : (val.despachos ? Object.values(val.despachos) : [])
+            };
+
+            localStorage.setItem(DB_LOCAL_KEY, JSON.stringify(data));
+            resolverCobradorActivo();
+            render();
+          }
+        });
+      } catch (err) {
+        console.warn("Modo local activo", err);
+        actualizarEstadoConexion(false);
+      }
+    }
+
+    function actualizarEstadoConexion(online) {
+      const b = document.getElementById('badgeCloudStatus');
+      const dot = document.getElementById('dotCloudStatus');
+      const txt = document.getElementById('txtCloudStatus');
+
+      if (online) {
+        b.className = 'badge-cloud cloud-online';
+        dot.className = 'live-dot dot-green';
+        txt.innerText = 'En vivo';
+      } else {
+        b.className = 'badge-cloud cloud-local';
+        dot.className = 'live-dot dot-yellow';
+        txt.innerText = 'Local';
+      }
+    }
+
+    // 4. Guardar datos (Nube Firebase + Respaldo Local)
+    function guardar() {
+      try {
+        localStorage.setItem(DB_LOCAL_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.error("Error local:", e);
+      }
+
+      if (dbFirebase && firebaseConectado) {
+        dbFirebase.ref('fitocontrol_data').set(data).catch(err => {
+          console.warn("Sincronización en cola:", err);
+        });
+      }
+    }
+
+    function fechaTexto() {
+      const d = new Date();
+      return d.toLocaleDateString('es-VE') + ', ' + d.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function toast(txt) {
+      const t = document.getElementById('appToast');
+      t.innerText = txt;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2200);
+    }
+
+    // ========================================================
+    // RENDER DE INTERFAZ
+    // ========================================================
+    function render() {
+      document.getElementById('displayTasaBCV').innerText = `Bs. ${Number(data.config.tasaBcv).toLocaleString('es-VE', { minimumFractionDigits: 2 })}`;
+      document.getElementById('labelTextoAviso').innerText = data.config.aviso;
+      document.getElementById('campoFechaCobro').value = fechaTexto();
+
+      const nombreCob = cobradorActivo ? cobradorActivo.nombre : 'Misael Fuenmayor';
+      document.getElementById('labelRutaHeader').innerText = `Ruta: ${nombreCob}`;
+      document.getElementById('badgeModoOperativo').innerText = `Ruta: ${nombreCob}`;
+
+      const misClientes = cobradorActivo ? data.clientes.filter(c => c.cobradorId === cobradorActivo.id) : data.clientes;
+      const misCobros = cobradorActivo ? data.cobros.filter(c => c.cobradorId === cobradorActivo.id) : data.cobros;
+      const misRendiciones = cobradorActivo ? data.rendiciones.filter(r => r.cobradorId === cobradorActivo.id) : data.rendiciones;
+      const misDespachos = cobradorActivo ? data.despachos.filter(d => d.cobradorId === cobradorActivo.id) : data.despachos;
+
+      const totalCartera = misClientes.reduce((acc, c) => acc + (Number(c.deuda) || 0), 0);
+      const totalCobradoUSD = misCobros.reduce((acc, c) => acc + (Number(c.montoUSD) || 0), 0);
+      const totalCobradoBS = misCobros.reduce((acc, c) => acc + (Number(c.montoBS) || 0), 0);
+      const totalComisiones = misCobros.reduce((acc, c) => acc + (Number(c.comisionGanada) || 0), 0);
+      const totalRendido = misRendiciones.reduce((acc, r) => acc + (Number(r.montoUSD) || 0), 0);
+
+      document.getElementById('mCartera').innerText = `$${totalCartera.toFixed(2)}`;
+      document.getElementById('mCobradoUSD').innerText = `$${totalCobradoUSD.toFixed(2)}`;
+      document.getElementById('mCobradoBS').innerText = `Bs. ${totalCobradoBS.toLocaleString('es-VE', { minimumFractionDigits: 2 })}`;
+      document.getElementById('mComisiones').innerText = `$${totalComisiones.toFixed(2)}`;
+      document.getElementById('mRendido').innerText = `$${totalRendido.toFixed(2)}`;
+
+      const selCli = document.getElementById('selectClienteACobrar');
+      if (misClientes.length === 0) {
+        selCli.innerHTML = `<option value="">-- No hay clientes en esta ruta --</option>`;
+      } else {
+        selCli.innerHTML = `<option value="">-- Seleccionar cliente --</option>` +
+          misClientes.map(c => `<option value="${c.id}">${c.nombre} (Deuda: $${Number(c.deuda).toFixed(2)})</option>`).join('');
+      }
+
+      renderMiStock(misDespachos);
+      renderProductosParaNuevoCliente(misDespachos);
+      renderCuentasBancarias();
+      renderCobrosHoy(misCobros);
+      renderMaster();
+    }
+
+    // ========================================================
+    // GESTIÓN DE PESTAÑAS OPERATIVAS
+    // ========================================================
+    const vCobrar = document.getElementById('vistaCobrar');
+    const vMercancia = document.getElementById('vistaMercancia');
+    const vNuevoCli = document.getElementById('vistaNuevoCliente');
+    const vCuentas = document.getElementById('vistaCuentas');
+
+    const tCobrar = document.getElementById('tabCobrar');
+    const tMercancia = document.getElementById('tabMercancia');
+    const tNuevoCli = document.getElementById('tabNuevoCliente');
+    const tCuentas = document.getElementById('tabCuentas');
+
+    function resetTabs() {
+      vCobrar.style.display = 'none';
+      vMercancia.style.display = 'none';
+      vNuevoCli.style.display = 'none';
+      vCuentas.style.display = 'none';
+
+      tCobrar.classList.remove('active');
+      tMercancia.classList.remove('active');
+      tNuevoCli.classList.remove('active');
+      tCuentas.classList.remove('active');
+    }
+
+    tCobrar.onclick = () => { resetTabs(); vCobrar.style.display = 'block'; tCobrar.classList.add('active'); };
+    tMercancia.onclick = () => { resetTabs(); vMercancia.style.display = 'block'; tMercancia.classList.add('active'); };
+    tNuevoCli.onclick = () => { resetTabs(); vNuevoCli.style.display = 'block'; tNuevoCli.classList.add('active'); };
+    tCuentas.onclick = () => { resetTabs(); vCuentas.style.display = 'block'; tCuentas.classList.add('active'); };
+
+    // ========================================================
+    // REGISTRO DE COBRO A CLIENTE
+    // ========================================================
+    const inUSD = document.getElementById('inputMontoUSD');
+    const boxBS = document.getElementById('boxCobroBS');
+
+    inUSD.oninput = (e) => {
+      const val = parseFloat(e.target.value) || 0;
+      const t = parseFloat(data.config.tasaBcv) || 1;
+      boxBS.innerText = `Bs. ${(val * t).toLocaleString('es-VE', { minimumFractionDigits: 2 })}`;
+    };
+
+    document.getElementById('btnGuardarCobro').onclick = () => {
+      const cliId = document.getElementById('selectClienteACobrar').value;
+      const monto = parseFloat(inUSD.value) || 0;
+      const metodo = document.getElementById('selectMetodoCobro').value;
+
+      if (!cliId) { toast('Selecciona un cliente'); return; }
+      if (monto <= 0) { toast('Introduce un monto válido'); return; }
+
+      const cli = data.clientes.find(c => c.id === cliId);
+      if (!cli) return;
+
+      const tasa = parseFloat(data.config.tasaBcv) || 1;
+      const comisionPorc = cobradorActivo ? (cobradorActivo.comisionCobranza || 0) : 0;
+      const ganancia = (monto * comisionPorc) / 100;
+
+      cli.deuda = Math.max(0, (Number(cli.deuda) || 0) - monto);
+
+      data.cobros.push({
+        id: 'cob_' + Date.now(),
+        clienteId: cli.id,
+        clienteNombre: cli.nombre,
+        cobradorId: cli.cobradorId,
+        montoUSD: monto,
+        montoBS: monto * tasa,
+        metodo: metodo,
+        comisionGanada: ganancia,
+        fecha: fechaTexto()
+      });
+
+      guardar();
+      render();
+
+      inUSD.value = '';
+      boxBS.innerText = 'Bs. 0,00';
+      toast(`Cobro guardado y sincronizado (${metodo})`);
+    };
+
+    // ========================================================
+    // MI STOCK Y VENTA DIRECTA
+    // ========================================================
+    function renderMiStock(despachos) {
+      const cont = document.getElementById('contenedorProductosCobrador');
+      const selV = document.getElementById('selectVentaProducto');
+      const badge = document.getElementById('badgeStockUnidades');
+
+      const activos = despachos.filter(d => (Number(d.cantidadDisponible) || 0) > 0);
+      const totalUnds = activos.reduce((acc, d) => acc + d.cantidadDisponible, 0);
+
+      if (totalUnds > 0) {
+        badge.innerText = totalUnds;
+        badge.style.display = 'block';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      if (activos.length === 0) {
+        cont.innerHTML = `<p style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px;">No tienes mercancía asignada actualmente.</p>`;
+        selV.innerHTML = `<option value="">-- No hay mercancía --</option>`;
+        return;
+      }
+
+      cont.innerHTML = activos.map(d => `
+        <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="font-size: 12px; color: #0f172a;">${d.productoNombre}</strong>
+            <div style="font-size: 10px; color: #64748b; margin-top:2px;">
+              Ref: <strong style="color: #059669;">$${Number(d.precioRef).toFixed(2)}</strong> | 
+              Tu Ganancia: <span style="background: #fde68a; color: #92400e; padding: 1px 4px; border-radius: 4px; font-weight: 800;">${d.porcentajeComisionVenta}%</span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Disponible</span>
+            <span style="font-size: 14px; font-weight: 900; color: #92400e;">${d.cantidadDisponible} unds</span>
+          </div>
+        </div>
+      `).join('');
+
+      selV.innerHTML = `<option value="">-- Selecciona producto --</option>` +
+        activos.map(d => `
+          <option value="${d.id}" data-precio="${d.precioRef}" data-comision="${d.porcentajeComisionVenta}">
+            ${d.productoNombre} (Disponibles: ${d.cantidadDisponible} | Ref: $${d.precioRef} | Ganas: ${d.porcentajeComisionVenta}%)
+          </option>
+        `).join('');
+    }
+
+    const selVentaProd = document.getElementById('selectVentaProducto');
+    const inVentaCant = document.getElementById('inputVentaCantidad');
+    const inVentaMonto = document.getElementById('inputVentaMonto');
+    const lblGananciaVenta = document.getElementById('labelGananciaVentaDirecta');
+
+    function recalcularVenta() {
+      const opt = selVentaProd.options[selVentaProd.selectedIndex];
+      if (!opt || !opt.value) {
+        lblGananciaVenta.innerText = '$0.00';
+        return;
+      }
+      const ref = parseFloat(opt.getAttribute('data-precio')) || 0;
+      const comision = parseFloat(opt.getAttribute('data-comision')) || 0;
+      const cant = parseInt(inVentaCant.value) || 1;
+
+      if (!inVentaMonto.value || inVentaMonto.value == 0) {
+        inVentaMonto.value = (ref * cant).toFixed(2);
+      }
+
+      const total = parseFloat(inVentaMonto.value) || 0;
+      lblGananciaVenta.innerText = `$${((total * comision) / 100).toFixed(2)}`;
+    }
+
+    selVentaProd.onchange = () => { inVentaMonto.value = ''; recalcularVenta(); };
+    inVentaCant.oninput = recalcularVenta;
+    inVentaMonto.oninput = recalcularVenta;
+
+    document.getElementById('btnRegistrarVentaDirecta').onclick = () => {
+      const despachoId = selVentaProd.value;
+      const cant = parseInt(inVentaCant.value) || 0;
+      const montoTotal = parseFloat(inVentaMonto.value) || 0;
+      const receptor = document.getElementById('inputVentaCliente').value.trim() || 'Venta al Contado';
+      const metodo = document.getElementById('selectMetodoVentaDirecta').value;
+
+      if (!despachoId) { toast('Selecciona el producto a vender'); return; }
+      if (cant <= 0) { toast('Indica una cantidad válida'); return; }
+
+      const d = data.despachos.find(x => x.id === despachoId);
+      if (!d || d.cantidadDisponible < cant) {
+        toast('Stock insuficiente');
+        return;
+      }
+
+      d.cantidadDisponible -= cant;
+      const ganancia = (montoTotal * (d.porcentajeComisionVenta || 0)) / 100;
+      const tasa = parseFloat(data.config.tasaBcv) || 1;
+
+      data.cobros.push({
+        id: 'vta_' + Date.now(),
+        clienteId: 'venta_directa',
+        clienteNombre: `${receptor} (${d.productoNombre} x${cant})`,
+        cobradorId: d.cobradorId,
+        montoUSD: montoTotal,
+        montoBS: montoTotal * tasa,
+        metodo: metodo,
+        comisionGanada: ganancia,
+        fecha: fechaTexto()
+      });
+
+      guardar();
+      render();
+
+      inVentaCant.value = '1';
+      inVentaMonto.value = '';
+      document.getElementById('inputVentaCliente').value = '';
+      lblGananciaVenta.innerText = '$0.00';
+      toast('Venta registrada y descontada de tu stock');
+    };
+
+    // ========================================================
+    // + CLIENTE EN CALLE (LIBRE SIN PIN)
+    // ========================================================
+    const chkDespacho = document.getElementById('checkDespacharMercanciaCliente');
+    const boxCamposDesp = document.getElementById('boxCamposDespachoCliente');
+    const boxDeudaMan = document.getElementById('boxDeudaManualNuevoCli');
+    const selProdCli = document.getElementById('selectProductoParaNuevoCliente');
+    const inCantProdCli = document.getElementById('inputCantProdNuevoCli');
+    const inDeudaProdCli = document.getElementById('inputDeudaProdNuevoCli');
+
+    chkDespacho.onchange = () => {
+      if (chkDespacho.checked) {
+        boxCamposDesp.style.display = 'block';
+        boxDeudaMan.style.display = 'none';
+      } else {
+        boxCamposDesp.style.display = 'none';
+        boxDeudaMan.style.display = 'block';
+      }
+    };
+
+    function renderProductosParaNuevoCliente(despachos) {
+      const disponibles = despachos.filter(d => (Number(d.cantidadDisponible) || 0) > 0);
+      if (disponibles.length === 0) {
+        selProdCli.innerHTML = `<option value="">-- No tienes mercancía asignada --</option>`;
+      } else {
+        selProdCli.innerHTML = `<option value="">-- Selecciona producto --</option>` +
+          disponibles.map(d => `<option value="${d.id}" data-precio="${d.precioRef}">${d.productoNombre} (Disponibles: ${d.cantidadDisponible} | Ref: $${d.precioRef})</option>`).join('');
+      }
+    }
+
+    function autoDeudaNuevoCli() {
+      const opt = selProdCli.options[selProdCli.selectedIndex];
+      if (!opt || !opt.value) return;
+      const ref = parseFloat(opt.getAttribute('data-precio')) || 0;
+      const cant = parseInt(inCantProdCli.value) || 1;
+      inDeudaProdCli.value = (ref * cant).toFixed(2);
+    }
+
+    selProdCli.onchange = autoDeudaNuevoCli;
+    inCantProdCli.oninput = autoDeudaNuevoCli;
+
+    document.getElementById('btnGuardarNuevoCliente').onclick = () => {
+      const nombre = document.getElementById('inputNuevoCliNombre').value.trim();
+      const tel = document.getElementById('inputNuevoCliTel').value.trim();
+      const dir = document.getElementById('inputNuevoCliDir').value.trim();
+      let desc = document.getElementById('inputDescNuevoCli').value.trim();
+
+      if (!nombre) { toast('Introduce el nombre del cliente'); return; }
+
+      const cobradorId = cobradorActivo ? cobradorActivo.id : 'misael';
+      let deuda = 0;
+
+      if (chkDespacho.checked) {
+        const dId = selProdCli.value;
+        const cant = parseInt(inCantProdCli.value) || 0;
+        const deudaCalc = parseFloat(inDeudaProdCli.value) || 0;
+
+        if (!dId) { toast('Selecciona el producto'); return; }
+        if (cant <= 0) { toast('Indica cantidad válida'); return; }
+
+        const d = data.despachos.find(x => x.id === dId);
+        if (!d || d.cantidadDisponible < cant) {
+          toast('Stock insuficiente');
+          return;
+        }
+
+        d.cantidadDisponible -= cant;
+        deuda = deudaCalc;
+        desc = `${cant} unds de ${d.productoNombre} ${desc ? '(' + desc + ')' : ''}`;
+      } else {
+        deuda = parseFloat(document.getElementById('inputDeudaManualNuevoCli').value) || 0;
+      }
+
+      data.clientes.push({
+        id: 'cli_' + Date.now(),
+        nombre,
+        telefono: tel,
+        direccion: dir,
+        descripcion: desc || 'Sin detalles',
+        deuda,
+        cobradorId,
+        creadoPor: cobradorActivo ? cobradorActivo.nombre : 'Misael Fuenmayor',
+        fecha: fechaTexto()
+      });
+
+      guardar();
+      render();
+
+      document.getElementById('inputNuevoCliNombre').value = '';
+      document.getElementById('inputNuevoCliTel').value = '';
+      document.getElementById('inputNuevoCliDir').value = '';
+      document.getElementById('inputDescNuevoCli').value = '';
+      document.getElementById('inputDeudaManualNuevoCli').value = '';
+      chkDespacho.checked = false;
+      boxCamposDesp.style.display = 'none';
+      boxDeudaMan.style.display = 'block';
+
+      toast('Cliente registrado y sincronizado');
+      tCobrar.click();
+    };
+
+    // ========================================================
+    // RENDIR DINERO (LIBRE SIN PIN)
+    // ========================================================
+    const modalRendir = document.getElementById('modalRendir');
+    document.getElementById('btnAbrirModalRendir').onclick = () => {
+      modalRendir.className = 'custom-modal-overlay modal-active';
+    };
+    document.getElementById('btnCerrarModalRendir').onclick = () => {
+      modalRendir.className = 'custom-modal-overlay modal-hidden';
+    };
+
+    document.getElementById('btnConfirmarRendirModal').onclick = () => {
+      const usd = parseFloat(document.getElementById('inputRendirMontoUSD').value) || 0;
+      const bs = parseFloat(document.getElementById('inputRendirMontoBS').value) || 0;
+      const metodo = document.getElementById('selectRendirMetodo').value;
+      const nota = document.getElementById('inputRendirNota').value.trim();
+
+      if (usd <= 0 && bs <= 0) { toast('Introduce el monto a rendir'); return; }
+
+      data.rendiciones.push({
+        id: 'rnd_' + Date.now(),
+        cobradorId: cobradorActivo ? cobradorActivo.id : 'misael',
+        montoUSD: usd,
+        montoBS: bs,
+        metodo: metodo,
+        nota: nota || 'Entrega en mano al dueño',
+        fecha: fechaTexto()
+      });
+
+      guardar();
+      render();
+
+      document.getElementById('inputRendirMontoUSD').value = '';
+      document.getElementById('inputRendirMontoBS').value = '';
+      document.getElementById('inputRendirNota').value = '';
+      modalRendir.className = 'custom-modal-overlay modal-hidden';
+      toast('Rendición registrada y sincronizada');
+    };
+
+    // ========================================================
+    // CUENTAS Y BANCOS
+    // ========================================================
+    function renderCuentasBancarias() {
+      const c = data.config.cuentas || {};
+      document.getElementById('contenedorDatosBancarios').innerHTML = `
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; padding: 12px; border-radius: 12px; margin-bottom: 10px;">
+          <div style="font-weight: 800; color: #065f46; margin-bottom: 6px;">📲 PAGO MÓVIL</div>
+          <div><strong>Banco:</strong> ${c.banco || 'Banesco (0134)'}</div>
+          <div><strong>Teléfono:</strong> <span style="font-weight: 800; color: #0f766e;">${c.telefono || '0412-3184756'}</span></div>
+          <div><strong>Cédula:</strong> ${c.cedula || 'V-16.246.468'}</div>
+          <div><strong>Titular:</strong> ${c.titular || 'Misael David Fuenmayor Aguirre'}</div>
+        </div>
+
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; padding: 12px; border-radius: 12px; margin-bottom: 10px;">
+          <div style="font-weight: 800; color: #1e40af; margin-bottom: 6px;">🏦 TRANSFERENCIA BANCARIA</div>
+          <div><strong>Banco:</strong> ${c.banco || 'Banesco'}</div>
+          <div><strong>Tipo de Cuenta:</strong> ${c.tipoCuenta || 'Cuenta de Ahorro / Corriente'}</div>
+          <div><strong>Número de Cuenta:</strong></div>
+          <div style="background:#f1f5f9; padding:6px 8px; border-radius:6px; font-family:monospace; font-weight:800; color:#1e293b; margin-top:2px;">
+            ${c.numeroCuenta || '0134-0131-40-1312237032'}
+          </div>
+        </div>
+
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; padding: 12px; border-radius: 12px; margin-bottom: 10px;">
+          <div style="font-weight: 800; color: #b45309; margin-bottom: 6px;">🟡 BINANCE PAY / USDT</div>
+          <div><strong>Binance Pay ID:</strong> <span style="font-weight: 800; color: #92400e;">${c.binanceId || '381920412'}</span></div>
+          <div><strong>Correo / Usuario:</strong> <span style="font-weight: 800; color: #0f172a;">${c.binanceUser || 'misaelfuenmayor@gmail.com'}</span></div>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px dashed #94a3b8; padding: 10px; border-radius: 10px; font-size:11px; color:#475569;">
+          💵 <strong>Efectivo:</strong> Recibimos divisas en efectivo ($) y bolívares en efectivo (Bs) a tasa oficial BCV entregados directamente en mano.
+        </div>
+      `;
+    }
+
+    function renderCobrosHoy(cobros) {
+      const hoy = new Date().toLocaleDateString('es-VE');
+      const cobrosHoy = cobros.filter(c => c.fecha && c.fecha.startsWith(hoy));
+      document.getElementById('contadorCobrosHoy').innerText = `${cobrosHoy.length} cobros`;
+      const cont = document.getElementById('listaCobrosHoyContainer');
+
+      if (cobrosHoy.length === 0) {
+        cont.innerHTML = `<p style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px;">No hay cobros realizados hoy.</p>`;
+        return;
+      }
+
+      cont.innerHTML = cobrosHoy.slice().reverse().map(c => `
+        <div class="history-card">
+          <div>
+            <strong style="color: #0f172a;">${c.clienteNombre}</strong>
+            <div style="font-size: 10px; color: #64748b;">${c.fecha}</div>
+            <span class="badge-pay ${badgeClaseMetodo(c.metodo)}">${c.metodo}</span>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 900; color: #059669;">$${Number(c.montoUSD).toFixed(2)}</div>
+            <div style="font-size: 10px; font-weight: 700; color: #0f766e;">Bs. ${Number(c.montoBS).toLocaleString('es-VE', { minimumFractionDigits: 2 })}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function badgeClaseMetodo(m) {
+      if (!m) return 'pay-usd';
+      if (m.includes('Binance')) return 'pay-binance';
+      if (m.includes('Pago Móvil')) return 'pay-pm';
+      if (m.includes('Transferencia')) return 'pay-bank';
+      if (m.includes('Bolívares')) return 'pay-bs';
+      return 'pay-usd';
+    }
+
+    // WHATSAPP RESUMEN
+    document.getElementById('btnCompartirWhatsApp').onclick = () => {
+      const nom = cobradorActivo ? cobradorActivo.nombre : 'Misael Fuenmayor';
+      const cartera = document.getElementById('mCartera').innerText;
+      const usd = document.getElementById('mCobradoUSD').innerText;
+      const bs = document.getElementById('mCobradoBS').innerText;
+      const rend = document.getElementById('mRendido').innerText;
+
+      const txt = `🌿 *Fitocosmética y Perfumes 100%*\n` +
+                  `📋 *Resumen Operativo*: ${nom}\n` +
+                  `📅 *Fecha*: ${fechaTexto()}\n` +
+                  `-----------------------------------\n` +
+                  `💰 *Cobrado Total ($)*: ${usd}\n` +
+                  `🇻🇪 *Cobrado Total (Bs)*: ${bs}\n` +
+                  `📦 *Cartera en Calle*: ${cartera}\n` +
+                  `🤝 *Rendido al Dueño*: ${rend}\n` +
+                  `-----------------------------------\n` +
+                  `_Fitocontrol en Vivo_`;
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
+    };
+
+    // ========================================================
+    // ACCESO SECRETO (5 TOQUES RÁPIDOS)
+    // ========================================================
+    let conteoToques = 0;
+    let timerReset = null;
+    let pinBuffer = '';
+
+    const modalPIN = document.getElementById('modalPIN');
+    const modalMaster = document.getElementById('modalMaster');
+
+    document.getElementById('triggerSecretHeader').onclick = () => {
+      conteoToques++;
+      clearTimeout(timerReset);
+      timerReset = setTimeout(() => { conteoToques = 0; }, 2000);
+
+      if (conteoToques >= 5) {
+        conteoToques = 0;
+        pinBuffer = '';
+        actualizarDots();
+        modalPIN.className = 'custom-modal-overlay modal-active';
+      }
+    };
+
+    function actualizarDots() {
+      for (let i = 0; i < 4; i++) {
+        const d = document.getElementById(`dot${i}`);
+        if (i < pinBuffer.length) {
+          d.classList.add('filled');
+        } else {
+          d.classList.remove('filled');
+        }
+      }
+    }
+
+    document.querySelectorAll('.btn-num').forEach(b => {
+      b.onclick = () => {
+        if (pinBuffer.length < 4) {
+          pinBuffer += b.getAttribute('data-k');
+          actualizarDots();
+
+          if (pinBuffer.length === 4) {
+            setTimeout(() => {
+              if (pinBuffer === (data.config.pin || '1234')) {
+                modalPIN.className = 'custom-modal-overlay modal-hidden';
+                modalMaster.className = 'custom-modal-overlay modal-active';
+                renderMaster();
+                toast('Acceso Autorizado');
+              } else {
+                toast('PIN Incorrecto');
+                pinBuffer = '';
+                actualizarDots();
+              }
+            }, 100);
+          }
+        }
+      };
+    });
+
+    document.getElementById('btnBorrarPIN').onclick = () => {
+      if (pinBuffer.length > 0) {
+        pinBuffer = pinBuffer.slice(0, -1);
+        actualizarDots();
+      }
+    };
+
+    document.getElementById('btnSalirPIN').onclick = () => {
+      modalPIN.className = 'custom-modal-overlay modal-hidden';
+    };
+
+    document.getElementById('btnCerrarMaster').onclick = () => {
+      modalMaster.className = 'custom-modal-overlay modal-hidden';
+    };
+
+    document.querySelectorAll('.master-tab-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.master-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.m-view').forEach(v => v.style.display = 'none');
+        document.getElementById(btn.getAttribute('data-v')).style.display = 'block';
+      };
+    });
+
+    // ========================================================
+    // PANEL MAESTRO (DUEÑO)
+    // ========================================================
+    function renderMaster() {
+      const selAud = document.getElementById('selectFiltroMasterCobrador');
+      const selDespProd = document.getElementById('selectDespachoProducto');
+      const selDespCob = document.getElementById('selectDespachoCobrador');
+      const selCliCob = document.getElementById('selectCliCobradorMaster');
+
+      const optsCob = data.cobradores.map(c => `<option value="${c.id}">${c.nombre} (${c.comisionCobranza}% cobro)</option>`).join('');
+
+      selAud.innerHTML = `<option value="todos">Consolidado Global (Todos)</option>` + optsCob;
+      selDespCob.innerHTML = `<option value="">-- Seleccionar Cobrador --</option>` + optsCob;
+      selCliCob.innerHTML = `<option value="">-- Seleccionar Cobrador --</option>` + optsCob;
+
+      actualizarAuditoria();
+
+      // Inventario
+      const contInv = document.getElementById('contenedorListaInventarioCentral');
+      if (data.inventarioCentral.length === 0) {
+        contInv.innerHTML = `<p style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px;">Almacén central sin productos.</p>`;
+        selDespProd.innerHTML = `<option value="">-- No hay productos --</option>`;
+      } else {
+        contInv.innerHTML = data.inventarioCentral.map(p => `
+          <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:8px 10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="color: #0f172a;">${p.nombre}</strong>
+              <div style="font-size: 10px; color: #64748b;">Ref: $${Number(p.precioRef).toFixed(2)}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="background: #d1fae5; color: #065f46; font-size: 12px; font-weight: 900; padding: 2px 8px; border-radius: 6px;">
+                ${p.stock} unds
+              </span>
+              <button onclick="eliminarProducto('${p.id}')" style="background:none; border:none; color:#dc2626; cursor:pointer;">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+
+        selDespProd.innerHTML = `<option value="">-- Selecciona producto --</option>` +
+          data.inventarioCentral.map(p => `<option value="${p.id}">${p.nombre} (Stock: ${p.stock} | Ref: $${p.precioRef})</option>`).join('');
+      }
+
+      // Despachos
+      const contDesp = document.getElementById('contenedorListaDespachosActivos');
+      if (data.despachos.length === 0) {
+        contDesp.innerHTML = `<p style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px;">No hay mercancía asignada en calle.</p>`;
+      } else {
+        contDesp.innerHTML = data.despachos.map(d => {
+          const cob = data.cobradores.find(c => c.id === d.cobradorId);
+          return `
+            <div class="history-card">
+              <div>
+                <strong style="color: #0f172a;">${d.productoNombre}</strong>
+                <div style="font-size: 10px; color: #64748b;">
+                  Cobrador: <strong>${cob ? cob.nombre : 'General'}</strong> | Ganancia: <span style="color:#d97706; font-weight:800;">${d.porcentajeComisionVenta}%</span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-weight: 900; color: #d97706;">${d.cantidadDisponible} / ${d.cantidadOriginal} unds</div>
+                <button onclick="devolverDespacho('${d.id}')" style="font-size: 9px; color: #dc2626; background: none; border: none; cursor: pointer; font-weight: 800;">
+                  Devolver
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Cobradores
+      const contCob = document.getElementById('contenedorListaCobradoresMaster');
+      contCob.innerHTML = data.cobradores.map(c => {
+        const url = `${window.location.origin}${window.location.pathname}?cobrador=${c.id}`;
+        return `
+          <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:10px; margin-bottom:8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <strong style="color: #0f172a; font-size: 13px;">${c.nombre}</strong>
+              <span style="font-size: 10px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 800;">Comisión Cobro: ${c.comisionCobranza}%</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="copiarTexto('${url}')" style="flex:1; padding:6px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; font-size:10px; font-weight:800; cursor:pointer;">
+                📋 Copiar Enlace
+              </button>
+              <button onclick="compartirCobradorWA('${c.nombre}', '${url}')" style="flex:1; padding:6px; background:#d1fae5; border:1px solid #34d399; color:#065f46; border-radius:6px; font-size:10px; font-weight:800; cursor:pointer;">
+                📲 WhatsApp
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Clientes
+      const contCli = document.getElementById('contenedorListaClientesMaster');
+      if (data.clientes.length === 0) {
+        contCli.innerHTML = `<p style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px;">No hay clientes registrados.</p>`;
+      } else {
+        contCli.innerHTML = data.clientes.map(cl => {
+          const cob = data.cobradores.find(c => c.id === cl.cobradorId);
+          return `
+            <div class="history-card">
+              <div>
+                <strong style="color: #0f172a;">${cl.nombre}</strong>
+                <div style="font-size: 10px; color: #64748b;">Ruta: ${cob ? cob.nombre : 'Sin asignar'} • Tel: ${cl.telefono || 'N/A'}</div>
+                <div style="font-size: 10px; color: #475569; margin-top: 2px;">📦 ${cl.descripcion}</div>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-weight: 900; color: #dc2626;">$${Number(cl.deuda).toFixed(2)}</span>
+                <button onclick="eliminarCliente('${cl.id}')" style="display:block; font-size:9px; color:#dc2626; background:none; border:none; cursor:pointer; margin-top:4px;">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Rendiciones
+      const contRend = document.getElementById('contenedorListaRendicionesMaster');
+      if (data.rendiciones.length === 0) {
+        contRend.innerHTML = `<p style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px;">No hay rendiciones registradas.</p>`;
+      } else {
+        contRend.innerHTML = data.rendiciones.slice().reverse().map(r => {
+          const cob = data.cobradores.find(c => c.id === r.cobradorId);
+          return `
+            <div class="history-card">
+              <div>
+                <strong style="color: #0f172a;">${cob ? cob.nombre : 'Misael Fuenmayor'}</strong>
+                <div style="font-size: 10px; color: #64748b;">${r.fecha} • Nota: ${r.nota}</div>
+                <span class="badge-pay ${badgeClaseMetodo(r.metodo)}">${r.metodo}</span>
+              </div>
+              <div style="text-align: right; font-weight: 900; color: #059669;">
+                $${Number(r.montoUSD).toFixed(2)}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Ajustes
+      document.getElementById('inputAjusteAviso').value = data.config.aviso;
+      document.getElementById('inputAjusteTasa').value = data.config.tasaBcv;
+      document.getElementById('inputAjustePin').value = data.config.pin;
+
+      const c = data.config.cuentas || {};
+      document.getElementById('inputAjusteTitular').value = c.titular || '';
+      document.getElementById('inputAjusteCedula').value = c.cedula || '';
+      document.getElementById('inputAjusteTelPM').value = c.telefono || '';
+      document.getElementById('inputAjusteBanco').value = c.banco || '';
+      document.getElementById('inputAjusteTipoCuenta').value = c.tipoCuenta || '';
+      document.getElementById('inputAjusteNumCuenta').value = c.numeroCuenta || '';
+      document.getElementById('inputAjusteBinanceId').value = c.binanceId || '';
+      document.getElementById('inputAjusteBinanceUser').value = c.binanceUser || '';
+    }
+
+    document.getElementById('selectFiltroMasterCobrador').onchange = actualizarAuditoria;
+
+    function actualizarAuditoria() {
+      const f = document.getElementById('selectFiltroMasterCobrador').value;
+      let cobros = data.cobros;
+      let rendiciones = data.rendiciones;
+      let clientes = data.clientes;
+
+      if (f && f !== 'todos') {
+        cobros = cobros.filter(c => c.cobradorId === f);
+        rendiciones = rendiciones.filter(r => r.cobradorId === f);
+        clientes = clientes.filter(c => c.cobradorId === f);
+      }
+
+      const totalUSD = cobros.reduce((acc, c) => acc + (Number(c.montoUSD) || 0), 0);
+      const totalBS = cobros.reduce((acc, c) => acc + (Number(c.montoBS) || 0), 0);
+      const totalCom = cobros.reduce((acc, c) => acc + (Number(c.comisionGanada) || 0), 0);
+      const totalRend = rendiciones.reduce((acc, r) => acc + (Number(r.montoUSD) || 0), 0);
+      const totalCart = clientes.reduce((acc, c) => acc + (Number(c.deuda) || 0), 0);
+
+      document.getElementById('auditUSD').innerText = `$${totalUSD.toFixed(2)}`;
+      document.getElementById('auditBS').innerText = `Bs. ${totalBS.toLocaleString('es-VE', { minimumFractionDigits: 2 })}`;
+      document.getElementById('auditComision').innerText = `$${totalCom.toFixed(2)}`;
+      document.getElementById('auditRendido').innerText = `$${totalRend.toFixed(2)}`;
+      document.getElementById('auditCartera').innerText = `$${totalCart.toFixed(2)}`;
+
+      const cont = document.getElementById('contenedorAuditoriaCobros');
+      if (cobros.length === 0) {
+        cont.innerHTML = `<p style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px;">No hay cobros registrados con este filtro.</p>`;
+      } else {
+        cont.innerHTML = cobros.slice().reverse().map(c => `
+          <div class="history-card">
+            <div>
+              <strong style="color: #0f172a;">${c.clienteNombre}</strong>
+              <div style="font-size: 10px; color: #64748b;">${c.fecha} • <span class="badge-pay ${badgeClaseMetodo(c.metodo)}">${c.metodo}</span></div>
+            </div>
+            <span style="font-weight: 900; color: #059669;">$${Number(c.montoUSD).toFixed(2)}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Agregar Producto al Almacén Central
+    document.getElementById('btnGuardarProdInventario').onclick = () => {
+      const nombre = document.getElementById('inputInvNombre').value.trim();
+      const stock = parseInt(document.getElementById('inputInvStock').value) || 0;
+      const precio = parseFloat(document.getElementById('inputInvPrecio').value) || 0;
+
+      if (!nombre) { toast('Introduce nombre del producto'); return; }
+      if (stock <= 0) { toast('Introduce un stock válido'); return; }
+
+      data.inventarioCentral.push({ id: 'prod_' + Date.now(), nombre, stock, precioRef: precio });
+      guardar();
+      render();
+
+      document.getElementById('inputInvNombre').value = '';
+      document.getElementById('inputInvStock').value = '';
+      document.getElementById('inputInvPrecio').value = '';
+      toast('Producto guardado en almacén central');
+    };
+
+    window.eliminarProducto = (id) => {
+      data.inventarioCentral = data.inventarioCentral.filter(p => p.id !== id);
+      guardar();
+      render();
+      toast('Producto eliminado');
+    };
+
+    // Despacho de Mercancía con Comisión Libre
+    document.getElementById('btnEjecutarDespachoDueno').onclick = () => {
+      const prodId = document.getElementById('selectDespachoProducto').value;
+      const cant = parseInt(document.getElementById('inputDespachoCantidad').value) || 0;
+      const margen = parseFloat(document.getElementById('inputDespachoMargen').value) || 0;
+      const cobradorId = document.getElementById('selectDespachoCobrador').value;
+
+      if (!prodId) { toast('Selecciona producto'); return; }
+      if (cant <= 0) { toast('Cantidad inválida'); return; }
+      if (!cobradorId) { toast('Selecciona cobrador receptor'); return; }
+
+      const prod = data.inventarioCentral.find(p => p.id === prodId);
+      if (!prod || prod.stock < cant) {
+        toast('Stock insuficiente en almacén');
+        return;
+      }
+
+      prod.stock -= cant;
+      data.despachos.push({
+        id: 'dsp_' + Date.now(),
+        productoId: prod.id,
+        productoNombre: prod.nombre,
+        precioRef: prod.precioRef,
+        cantidadOriginal: cant,
+        cantidadDisponible: cant,
+        porcentajeComisionVenta: margen,
+        cobradorId,
+        fecha: fechaTexto()
+      });
+
+      guardar();
+      render();
+
+      document.getElementById('inputDespachoCantidad').value = '';
+      document.getElementById('inputDespachoMargen').value = '';
+      toast(`Mercancía despachada (${margen}% comisión)`);
+    };
+
+    window.devolverDespacho = (id) => {
+      const d = data.despachos.find(x => x.id === id);
+      if (!d) return;
+
+      const p = data.inventarioCentral.find(x => x.id === d.productoId);
+      if (p) p.stock += d.cantidadDisponible;
+
+      data.despachos = data.despachos.filter(x => x.id !== id);
+      guardar();
+      render();
+      toast('Mercancía devuelta al Almacén');
+    };
+
+    // Crear Cobrador
+    document.getElementById('btnGuardarCobrador').onclick = () => {
+      const nom = document.getElementById('inputCobradorNombre').value.trim();
+      const com = parseFloat(document.getElementById('inputCobradorComision').value) || 0;
+
+      if (!nom) { toast('Introduce nombre del cobrador'); return; }
+
+      const id = nom.toLowerCase().replace(/[^a-z0-9]/g, '');
+      data.cobradores.push({ id, nombre: nom, comisionCobranza: com });
+
+      guardar();
+      render();
+
+      document.getElementById('inputCobradorNombre').value = '';
+      document.getElementById('inputCobradorComision').value = '';
+      toast(`Cobrador ${nom} creado`);
+    };
+
+    window.copiarTexto = (url) => {
+      const temp = document.createElement('input');
+      temp.value = url;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      toast('Enlace copiado al portapapeles');
+    };
+
+    window.compartirCobradorWA = (nombre, url) => {
+      const m = encodeURIComponent(`Hola ${nombre}, este es tu enlace privado para gestionar cobranzas y ventas: ${url}`);
+      window.open(`https://wa.me/?text=${m}`, '_blank');
+    };
+
+    // Crear Cliente desde Master
+    document.getElementById('btnGuardarClienteMaster').onclick = () => {
+      const nom = document.getElementById('inputCliNombreMaster').value.trim();
+      const tel = document.getElementById('inputCliTelMaster').value.trim();
+      const dir = document.getElementById('inputCliDirMaster').value.trim();
+      const desc = document.getElementById('inputCliDescMaster').value.trim();
+      const deuda = parseFloat(document.getElementById('inputCliDeudaMaster').value) || 0;
+      const cobId = document.getElementById('selectCliCobradorMaster').value;
+
+      if (!nom) { toast('Introduce nombre del cliente'); return; }
+      if (!cobId) { toast('Asigna un cobrador'); return; }
+
+      data.clientes.push({
+        id: 'cli_' + Date.now(),
+        nombre: nom,
+        telefono: tel,
+        direccion: dir,
+        descripcion: desc || 'Sin detalles',
+        deuda,
+        cobradorId: cobId,
+        creadoPor: 'Dueño',
+        fecha: fechaTexto()
+      });
+
+      guardar();
+      render();
+
+      document.getElementById('inputCliNombreMaster').value = '';
+      document.getElementById('inputCliTelMaster').value = '';
+      document.getElementById('inputCliDirMaster').value = '';
+      document.getElementById('inputCliDescMaster').value = '';
+      document.getElementById('inputCliDeudaMaster').value = '';
+      toast('Cliente asignado y sincronizado');
+    };
+
+    window.eliminarCliente = (id) => {
+      data.clientes = data.clientes.filter(c => c.id !== id);
+      guardar();
+      render();
+      toast('Cliente eliminado');
+    };
+
+    // Guardar Ajustes Generales
+    document.getElementById('btnGuardarAjustes').onclick = () => {
+      data.config.aviso = document.getElementById('inputAjusteAviso').value.trim();
+      data.config.tasaBcv = parseFloat(document.getElementById('inputAjusteTasa').value) || 893.22;
+      data.config.pin = document.getElementById('inputAjustePin').value.trim() || '1234';
+
+      data.config.cuentas = {
+        titular: document.getElementById('inputAjusteTitular').value.trim(),
+        cedula: document.getElementById('inputAjusteCedula').value.trim(),
+        telefono: document.getElementById('inputAjusteTelPM').value.trim(),
+        banco: document.getElementById('inputAjusteBanco').value.trim(),
+        tipoCuenta: document.getElementById('inputAjusteTipoCuenta').value.trim(),
+        numeroCuenta: document.getElementById('inputAjusteNumCuenta').value.trim(),
+        binanceId: document.getElementById('inputAjusteBinanceId').value.trim(),
+        binanceUser: document.getElementById('inputAjusteBinanceUser').value.trim()
+      };
+
+      guardar();
+      render();
+      toast('Ajustes guardados y sincronizados');
+    };
+
+    // INICIALIZACIÓN COMPLETA
+    window.onload = () => {
+      conectarFirebaseAutomatico();
+      render();
+    };
+  </script>
+</body>
+</html>
+```
